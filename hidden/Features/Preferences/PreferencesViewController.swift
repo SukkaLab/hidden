@@ -21,6 +21,7 @@ class PreferencesViewController: NSViewController {
     @IBOutlet weak var checkBoxKeepInDock: NSButton!
     @IBOutlet weak var checkBoxLogin: NSButton!
     @IBOutlet weak var checkBoxShowPreferences: NSButton!
+    @IBOutlet weak var checkBoxEnablePermHide: NSButton!
     
     @IBOutlet weak var timePopup: NSPopUpButton!
     
@@ -62,17 +63,35 @@ class PreferencesViewController: NSViewController {
         }
     }
     
-    @objc func autoStart(_ isCheck: Bool){
-        Preferences.isAutoStart = isCheck
+    @objc func autoStart(_ isCheck:Bool){
+        Util.isAutoStart = isCheck
+        Util.setUpAutoStart(isAutoStart: isCheck)
     }
     
     @IBAction func autoHideCheckChanged(_ sender: NSButton) {
-        Preferences.isAutoHide = sender.state == .on
+        Util.isAutoHide = sender.state.toBool()
     }
     
-    @IBAction func showPreferencesChanged(_ sender: NSButton) {
-        Preferences.isShowPreference = sender.state == .on
+    @IBAction func keepInDockCheckChanged(_ sender: NSButton) {
+        Util.isKeepInDock = sender.state.toBool()
+        let _ = Util.toggleDockIcon(sender.state.toBool())
+        let _ = Util.getAndShowPrefWindow()
     }
+    
+    
+    @IBAction func showPreferencesCheckChanged(_ sender: NSButton) {
+        Util.isShowPreferences = sender.state.toBool()
+    }
+    
+    @IBAction func onLastKeepAppStateChange(_ sender: NSButton) {
+        Util.keepLastState = sender.state.toBool()
+    }
+    
+    @IBAction func checkBoxGhostClicked(_ sender: NSButton) {
+        Util.isGhostModeEnabled = sender.state.toBool()
+        Util.toggleGhostMode()
+    }
+    
     
     @IBAction func timePopupDidSelected(_ sender: NSPopUpButton) {
         let selectedIndex = sender.indexOfSelectedItem
@@ -98,6 +117,8 @@ class PreferencesViewController: NSViewController {
         // Remove globalkey from userdefault
         Preferences.globalKey = nil
     }
+    
+    // MARK: - Private methods
     
     public func updateGlobalShortcut(_ event: NSEvent) {
         self.listening = false
@@ -142,10 +163,13 @@ class PreferencesViewController: NSViewController {
     
     private func setupUI(){
         imageViewTop.image = NSImage(named:NSImage.Name("banner"))
-        checkBoxLogin.state = Preferences.isAutoStart ? .on : .off
-        checkBoxAutoHide.state = Preferences.isAutoHide ? .on : .off
-        checkBoxShowPreferences.state = Preferences.isShowPreference ? .on : .off
-        timePopup.selectItem(at: SelectedSecond.secondToPossition(seconds: Preferences.numberOfSecondForAutoHide))
+        checkBoxLogin.state = Util.isAutoStart.toStateValue()
+        checkBoxAutoHide.state = Util.isAutoHide.toStateValue()
+        checkBoxKeepInDock.state = Util.isKeepInDock.toStateValue()
+        checkBoxShowPreferences.state = Util.isShowPreferences.toStateValue()
+        checkBoxKeepLastState.state = Util.keepLastState.toStateValue()
+        checkBoxEnablePermHide.state = Util.isGhostModeEnabled.toStateValue()
+        timePopup.selectItem(at: SelectedSecond.secondToPossition(seconds: Util.numberOfSecondForAutoHide))
     }
     
     private func loadHotkey() {

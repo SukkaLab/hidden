@@ -1,11 +1,3 @@
-//
-//  UserDefault+Extension.swift
-//  Hidden Bar
-//
-//  Created by phucld on 12/18/19.
-//  Copyright © 2019 Dwarves Foundation. All rights reserved.
-//
-
 import Foundation
 
 extension UserDefaults {
@@ -15,5 +7,14 @@ extension UserDefaults {
         static let isAutoStart = "isAutoStart"
         static let isAutoHide = "isAutoHide"
         static let isShowPreference = "isShowPreferences"
+        static let isAutoStart = "isAutoStart"
+        static let isAutoHide = "isAutoHide"
+        static let isKeepInDock = "isKeepInDock"
+        static let isShowPreferences = "isShowPreferences"
+        static let isKeepLastState = "isKeepLastState"
+        static let isCollapse = "isCollapse"
+        static let numberOfSecondForAutoHide = "NUMBER_OF_SECOND_FOR_AUTO_HIDE"
+        static let isPermHideEnabled = "IS_PERM_HIDE_ENABLED"
+
     }
 }
