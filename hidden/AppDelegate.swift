@@ -28,6 +28,8 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         setupAutoStartApp()
         registerDefaultValues()
+        Util.setUpAutoStart(isAutoStart: Util.isAutoStart)
+        statusBarController.initView()
         setupHotKey()
         openPreferencesIfNeeded()
     }
@@ -54,11 +56,13 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     func setupHotKey() {
         guard let globalKey = Preferences.globalKey else {return}
         hotKey = HotKey(keyCombo: KeyCombo(carbonKeyCode: globalKey.keyCode, carbonModifiers: globalKey.carbonFlags))
+    func applicationWillBecomeActive(_ notification: Notification) {
+        let _ = Util.toggleDockIcon(Util.isKeepInDock)
     }
     
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         // Handle open preferences window
-        Util.showPrefWindow()
+        Util.getAndShowPrefWindow()
         
         return true
     }

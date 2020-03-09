@@ -16,6 +16,10 @@ class StatusBarController {
     //MARK: - BarItems
     private let expandCollapseStatusBar = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private let separateStatusBar = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+    private let expandCollapseStatusBar = NSStatusBar.system.statusItem(withLength:NSStatusItem.squareLength)
+    private let seprateStatusBar = NSStatusBar.system.statusItem(withLength:20)
+    private var btnGhost = NSStatusBar.system.statusItem(withLength: 0)
+    private var appMenu:NSMenu? = nil
     
     private let normalStatusBarIconLength: CGFloat = 20
     private let collapseStatusBarIconLength: CGFloat = 10000
@@ -64,6 +68,35 @@ class StatusBarController {
     
     @objc func expandCollapseIfNeeded(_ sender: NSStatusBarButton?) {
         self.isCollapsed ? self.expandMenubar() : self.collapseMenuBar()
+        
+        setUpGhostBarStatusItem()
+        
+        self.enableGhostModeIfNeeded()
+        
+        if Util.isShowPreferences {
+            openPreferenceViewControllerIfNeeded()
+        }
+        
+        collapseBarWhenReopenAppIfNeeded()
+        autoCollapseIfNeeded()
+    }
+    
+    private func setUpGhostBarStatusItem() {
+       if let button = btnGhost.button {
+        button.title = "👻"
+       }
+    }
+    
+    private func collapseBarWhenReopenAppIfNeeded() {
+        
+        if(Util.isCollapse && Util.keepLastState && self.isValidPosition())
+        {
+            setupCollapseMenuBar()
+        }
+    }
+    
+    private func isValidPosition() -> Bool {
+        return Float((expandCollapseStatusBar.button?.position!.x)!) > Float((seprateStatusBar.button?.position!.x)!)
     }
     
     private func collapseMenuBar() {
@@ -82,6 +115,8 @@ class StatusBarController {
     private func expandMenubar() {
         guard self.isCollapsed else {return}
         separateStatusBar.length = normalStatusBarIconLength
+        Util.isCollapse = false
+        seprateStatusBar.length = 20
         if let button = expandCollapseStatusBar.button {
             button.image = self.imgIconCollapse
         }
@@ -91,6 +126,7 @@ class StatusBarController {
     
     private func autoCollapseIfNeeded() {
         guard Preferences.isAutoHide else {return}
+        if Util.isAutoHide == false {return}
         
         startTimerToAutoHide()
     }
@@ -105,6 +141,33 @@ class StatusBarController {
     }
     
     private func getContextMenu() -> NSMenu {
+    private func setupCollapseMenuBar() {
+        if Util.isShowPreferences {return}
+
+        Util.isCollapse = true
+        seprateStatusBar.length = 10000
+        if let button = expandCollapseStatusBar.button {
+            button.image = NSImage(named:NSImage.Name("ic_expand"))
+        }
+    }
+    
+
+    
+    private func enableGhostModeIfNeeded() {
+        var permHideIsOnLeftOfSeperator : Bool {
+            let dotX = Float((btnGhost.button?.position?.x)!)
+            let lineX = Float((seprateStatusBar.button?.position?.x)!)
+            return dotX < lineX
+        }
+        
+        if Util.isGhostModeEnabled && permHideIsOnLeftOfSeperator {
+            btnGhost.length = 10000
+        }else {
+            btnGhost.length = 0
+        }
+    }
+    
+    private func setupMenuUI() -> NSMenu {
         let menu = NSMenu()
         
         let  prefItem = NSMenuItem(title: "Preferences...", action: #selector(openPreferenceViewControllerIfNeeded), keyEquivalent: "P")
@@ -118,6 +181,16 @@ class StatusBarController {
     }
     
     @objc func openPreferenceViewControllerIfNeeded() {
-        Util.showPrefWindow()
+        let window = Util.getAndShowPrefWindow() as! PreferencesWindow
+        showGhostButtonIfNeeded()
+        window.windowClosedHandler { [weak self] in
+            Util.isShowPreferences = false
+            self?.enableGhostModeIfNeeded()
+            self?.autoCollapseIfNeeded()
+        }
+    }
+    func showGhostButtonIfNeeded() {
+        let btnGhostLength: CGFloat = Util.isGhostModeEnabled ? 22 : 0
+        btnGhost.length = btnGhostLength
     }
 }
